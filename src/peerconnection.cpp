@@ -94,21 +94,10 @@ void PeerconnectionMgr::start()
   _key_frame = 0;
   _frames = 0;
 
-  _file_bitstream.open("bitstream.264", std::ios::binary);
-
-  // auto receiver_cap = pcf->GetRtpReceiverCapabilities(cricket::MediaType::MEDIA_TYPE_VIDEO);
-
-  // for(auto&& cap : receiver_cap.codecs) std::cout << cap.name << " ";
-  // std::cout << std::endl;
-  // std::erase_if(receiver_cap.codecs,
-  // 		[](auto&& cap) -> bool { return cap.name != cricket::kH264CodecName; });
-  // for(auto&& cap : receiver_cap.codecs) std::cout << cap.name << " ";
-  // std::cout << std::endl;
-    
   webrtc::RtpTransceiverInit init;
 
   init.direction = webrtc::RtpTransceiverDirection::kRecvOnly;
-  init.stream_ids = { "tunnel" };
+  init.stream_ids = { "vm" };
 
   auto expected_transceiver = _pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_VIDEO, init);
   if(!expected_transceiver.ok()) return;
@@ -171,8 +160,6 @@ void PeerconnectionMgr::stop()
   TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "PeerConnection::Stop" << "\n";
   _stats_th_running = false;
   if(_stats_th.joinable()) _stats_th.join();
-
-  _file_bitstream.close();
   
   _pc->Close();
   _pc = nullptr;
@@ -228,46 +215,9 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
     }
   }
   
-  stats.push_back(std::move(rtc_stats));
-}
+  // stats.push_back(std::move(rtc_stats));
 
-void PeerconnectionMgr::Transform(std::unique_ptr<webrtc::TransformableFrameInterface> transformable_frame)
-{
-  auto ssrc = transformable_frame->GetSsrc();
-
-  if(auto it = _callbacks.find(ssrc); it != _callbacks.end()) {
-    auto video_frame = static_cast<webrtc::TransformableVideoFrameInterface*>(transformable_frame.get());
-    if(video_frame->IsKeyFrame()) {
-      // std::cout << "Received new key frame: " << ++_key_frame << " num " << _frames << " size " << transformable_frame->GetData().size() << "\n";
-    }
-    else {
-      // std::cout << "Received p frame: " << " size " << transformable_frame->GetData().size() << "\n";
-    }
-
-
-    ++_frames;
-
-    // std::cout << "Frame num " << _frames << " : " << video_frame->GetData().size() << "\n";
-
-    /*std::cout << video_frame->GetMetadata().GetFrameId().value_or(-1) << " " << video_frame->GetMetadata().GetCodec() << " "
-      << video_frame->GetTimestamp() << " " << webrtc::ToString(video_frame->GetCaptureTimeIdentifier().value_or(webrtc::Timestamp::Seconds(0))) << "\n";*/
-    
-    if(_file_bitstream.is_open() && _key_frame >= 1) {
-      _file_bitstream.write((const char*)video_frame->GetData().data(), video_frame->GetData().size());
-    }
-    
-    it->second->OnTransformedFrame(std::move(transformable_frame));
-  }
-}
-
-void PeerconnectionMgr::RegisterTransformedFrameSinkCallback(rtc::scoped_refptr<webrtc::TransformedFrameCallback> callback, uint32_t ssrc)
-{
-  _callbacks[ssrc] = callback;
-}
-
-void PeerconnectionMgr::UnregisterTransformedFrameSinkCallback(uint32_t ssrc)
-{
-  _callbacks.erase(ssrc);
+  if(onstats) onstats(std::move(rtc_stats));
 }
 
 void PeerconnectionMgr::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) 
@@ -306,8 +256,6 @@ void PeerconnectionMgr::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterfa
       ++_count;
     }
   });
-
-  transceiver->receiver()->SetDepacketizerToDecoderFrameTransformer(_me);
 
   if(video_sink) {
     auto track = static_cast<webrtc::VideoTrackInterface*>(transceiver->receiver()->track().get());

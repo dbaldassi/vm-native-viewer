@@ -47,7 +47,7 @@ gboolean draw(GtkWidget* widget, cairo_t* cr, gpointer data)
 
 WindowRenderer::WindowRenderer()
 {
-
+  _window = NULL;
 }
 
 WindowRenderer::~WindowRenderer()

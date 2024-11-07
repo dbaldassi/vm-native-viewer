@@ -16,14 +16,12 @@ public:
 
   using json = nlohmann::json;
   
-  size_t probing_bitrate = 2000z;
-  bool   probing = true;
-
-  std::string csv_url;
   std::string host;
 
   int port;
   std::function<void(const json&)> onanswer;
+  std::function<void(int)> ontarget;
+  std::function<void(const std::string&)> onname;
   
 public:
   
@@ -32,8 +30,6 @@ public:
   void start();
   void stop();
   void view(const std::string& sdp);
-  int get_rtp_port();
-  
 };
 
 #endif /* MEDOOZE_MGR_H */

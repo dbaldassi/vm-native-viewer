@@ -13,7 +13,7 @@ find_package( Cairo REQUIRED )
 find_package( PkgConfig REQUIRED )
 pkg_check_modules( GTK REQUIRED gtk+-3.0 )
 
-
+option( FAKE_RENDERER OFF )
 
 # --- ASIO
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external/asio/asio/include )
@@ -26,6 +26,10 @@ set( JSON_BuildTests      OFF CACHE INTERNAL "" )
 set( JSON_Install         OFF CACHE INTERNAL "" )
 set( JSON_MultipleHeaders ON  CACHE INTERNAL "" )
 add_subdirectory( external/nlohmann_json )
+
+# --- exe
+
+add_executable( vmviewer )
 
 # --- src
 add_subdirectory( src )
