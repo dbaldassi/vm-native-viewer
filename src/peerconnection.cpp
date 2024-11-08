@@ -163,8 +163,6 @@ void PeerconnectionMgr::stop()
   
   _pc->Close();
   _pc = nullptr;
-
-  TUNNEL_LOG(TunnelLogging::Severity::INFO) << "Received transformable frame : " << _frames;
 }
 
 void PeerconnectionMgr::set_remote_description(const std::string &sdp)

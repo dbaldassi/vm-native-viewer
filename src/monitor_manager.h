@@ -30,6 +30,8 @@ public:
   int         port;
 
   std::string name;
+
+  std::function<void()> onclose;
   
 public:
   MonitorMgr();

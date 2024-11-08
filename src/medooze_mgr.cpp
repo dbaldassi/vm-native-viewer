@@ -13,6 +13,7 @@ MedoozeMgr::MedoozeMgr() : _alive{false}
   _ws.onclose = [this]() {
     TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "medooze ws closed";
     _alive = false;
+    if(onclose) onclose();
   };
 }
 

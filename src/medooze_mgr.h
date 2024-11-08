@@ -24,6 +24,7 @@ public:
   std::function<void(const json&)> onanswer;
   std::function<void(int)> ontarget;
   std::function<void(const std::string&)> onname;
+  std::function<void()> onclose;
   
 public:
   

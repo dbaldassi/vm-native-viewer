@@ -24,26 +24,14 @@ namespace config
   constexpr const char * MONITOR_HOST = "134.59.133.57";
 }
 
-int main(int argc, char *argv[])
+int run()
 {
-#ifndef FAKE_RENDERER
-  gtk_init(&argc, &argv);
-
-#if !GLIB_CHECK_VERSION(2, 35, 0)
-  g_type_init();
-#endif
-  // g_thread_init API is deprecated since glib 2.31.0, see release note:
-  // http://mail.gnome.org/archives/gnome-announce-list/2011-October/msg00041.html
-#if !GLIB_CHECK_VERSION(2, 31, 0)
-  g_thread_init(NULL);
-#endif
-#endif
-  
-  TunnelLogging::set_min_severity(TunnelLogging::Severity::VERBOSE);
-  
   MedoozeMgr        medooze;
   PeerconnectionMgr pc;
   MonitorMgr        monitor;
+  
+  std::condition_variable cv;
+  std::mutex              mutex_cv;
   
   medooze.host = config::MEDOOZE_HOST;
   medooze.port = config::MEDOOZE_PORT;
@@ -88,17 +76,48 @@ int main(int argc, char *argv[])
     monitor.send_report(std::move(report));
   };
   
+  medooze.onclose = [&cv]() -> void { cv.notify_all(); };
+  monitor.onclose = [&cv]() -> void { cv.notify_all(); };
+  
   pc.start();
 
-  std::getchar();
+  {
+    std::unique_lock<std::mutex> lock(mutex_cv);
+    cv.wait(lock);
+  }
 
+  pc.stop();
+  monitor.stop();
+  medooze.stop();
+  window.destroy();
+  
+  return 0;
+}
+
+int main(int argc, char *argv[])
+{
+#ifndef FAKE_RENDERER
+  gtk_init(&argc, &argv);
+
+#if !GLIB_CHECK_VERSION(2, 35, 0)
+  g_type_init();
+#endif
+  // g_thread_init API is deprecated since glib 2.31.0, see release note:
+  // http://mail.gnome.org/archives/gnome-announce-list/2011-October/msg00041.html
+#if !GLIB_CHECK_VERSION(2, 31, 0)
+  g_thread_init(NULL);
+#endif
+#endif
+  
+  TunnelLogging::set_min_severity(TunnelLogging::Severity::VERBOSE);
+
+  run();
+  
   PeerconnectionMgr::clean();
 
 #ifndef FAKE_RENDERER
   gtk_main_quit();
 #endif
-  
-  window.destroy();
-  
+    
   return 0;
 }
