@@ -11,6 +11,8 @@ class MedoozeMgr
 
   std::condition_variable _cv;
   std::mutex              _cv_mutex;
+
+  std::atomic_bool _alive;
   
 public:
 

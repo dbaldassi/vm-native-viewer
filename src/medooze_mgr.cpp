@@ -3,10 +3,17 @@
 
 #include "tunnel_loggin.h"
 
-MedoozeMgr::MedoozeMgr()
+MedoozeMgr::MedoozeMgr() : _alive{false}
 {
-  _ws.onopen = []() { TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "medooze ws opened"; };
-  _ws.onclose = []() { TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "medooze ws closed"; };
+  _ws.onopen = [this]() {
+    TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "medooze ws opened";
+    _alive = true;
+    _cv.notify_all();
+  };
+  _ws.onclose = [this]() {
+    TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "medooze ws closed";
+    _alive = false;
+  };
 }
 
 void MedoozeMgr::start()
@@ -33,6 +40,11 @@ void MedoozeMgr::stop()
 void MedoozeMgr::view(const std::string& sdp)
 {
   TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "MedoozeManager::view";
+
+  if(!_alive) {
+    std::unique_lock<std::mutex> lock(_cv_mutex);
+    _cv.wait(lock);
+  }
   
   json cmd = {
     { "cmd", "view" },
