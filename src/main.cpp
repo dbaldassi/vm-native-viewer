@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 #endif
 #endif
   
-  TunnelLogging::set_min_severity(TunnelLogging::Severity::INFO);
+  TunnelLogging::set_min_severity(TunnelLogging::Severity::VERBOSE);
   
   MedoozeMgr        medooze;
   PeerconnectionMgr pc;
