@@ -2,11 +2,19 @@
 #define MONITOR_MANAGER_H
 
 #include <optional>
+#include <condition_variable>
+#include <mutex>
+
 #include "websocket.h"
 
 class MonitorMgr
 {
   WebSocketSecure _ws;
+  
+  std::condition_variable _cv;
+  std::mutex              _cv_mutex;
+
+  std::atomic_bool _alive;
  
 public:
   using json = nlohmann::json;
