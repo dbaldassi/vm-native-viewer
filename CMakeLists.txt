@@ -7,13 +7,14 @@ message( STATUS "Found libwebrtc at ${libwebrtc_DIR}." )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-find_package( X11 REQUIRED )
-find_package( Cairo REQUIRED )
-
-find_package( PkgConfig REQUIRED )
-pkg_check_modules( GTK REQUIRED gtk+-3.0 )
-
 option( FAKE_RENDERER OFF )
+
+if( NOT FAKE_RENDERER )
+  find_package( X11 REQUIRED )
+  find_package( Cairo REQUIRED )
+  find_package( PkgConfig REQUIRED )
+  pkg_check_modules( GTK REQUIRED gtk+-3.0 )
+endif()
 
 # --- ASIO
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/external/asio/asio/include )
