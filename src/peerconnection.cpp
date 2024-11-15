@@ -77,6 +77,11 @@ void PeerconnectionMgr::start()
   config.combined_audio_video_bwe.emplace(true);
   config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
 
+  if(port_range.has_value()) {
+    config.set_min_port(port_range->min_port);
+    config.set_max_port(port_range->max_port);
+  }
+
   auto res = pcf->CreatePeerConnectionOrError(config, std::move(deps));
 
   if(!res.ok()) {
@@ -199,6 +204,8 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
       rtc_stats.frame_decoded = s->frames_decoded.ValueOrDefault(0.);
       rtc_stats.frame_key_decoded = s->key_frames_decoded.ValueOrDefault(0.);
 
+      TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << s->frame_width.ValueOrDefault(0.) << "x" << s->frame_height.ValueOrDefault(0.);
+      
       /*std::cout << "jitter : " << s->jitter_buffer_delay.ValueOrDefault(0.) << "\n"
 		<< "jitter target : " << s->jitter_buffer_target_delay.ValueOrDefault(0.) << "\n"
 		<< "jitter min : " << s->jitter_buffer_minimum_delay.ValueOrDefault(0.) << "\n"

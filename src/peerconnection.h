@@ -35,7 +35,6 @@ class PeerconnectionMgr : public webrtc::PeerConnectionObserver,
 
   int _key_frame;
   int _frames;
-  
 public:
 
   rtc::VideoSinkInterface<webrtc::VideoFrame> * video_sink = nullptr;
@@ -60,6 +59,14 @@ public:
   std::function<void(const std::string&)> onlocaldesc;
   std::list<RTCStats> stats;
   int link;
+
+  struct PortRange
+  {
+    int min_port;
+    int max_port;
+  };
+  
+  std::optional<PortRange> port_range;
   
   PeerconnectionMgr();
   ~PeerconnectionMgr();

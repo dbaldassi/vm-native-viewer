@@ -26,7 +26,7 @@ typedef union _GdkEvent GdkEvent;
 typedef struct _GdkEventKey GdkEventKey;
 typedef struct _GtkTreeView GtkTreeView;
 typedef struct _GtkTreePath GtkTreePath;
-typedef struct ma_GtkTreeViewColumn GtkTreeViewColumn;
+typedef struct _GtkTreeViewColumn GtkTreeViewColumn;
 typedef struct _cairo cairo_t;
 
 class WindowRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame>

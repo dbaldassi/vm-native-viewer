@@ -24,7 +24,7 @@ namespace config
   constexpr const char * MONITOR_HOST = "134.59.133.57";
 }
 
-int run()
+int run(std::optional<PeerconnectionMgr::PortRange> range)
 {
   MedoozeMgr        medooze;
   PeerconnectionMgr pc;
@@ -48,6 +48,7 @@ int run()
   }
 
   pc.video_sink = &window;
+  pc.port_range = std::move(range);
 
 #ifndef FAKE_RENDERER
   std::thread([](){ gtk_main(); }).detach();
@@ -111,7 +112,14 @@ int main(int argc, char *argv[])
   
   TunnelLogging::set_min_severity(TunnelLogging::Severity::VERBOSE);
 
-  run();
+  std::optional<PeerconnectionMgr::PortRange> range;
+  if(argc == 3) {
+    range = PeerconnectionMgr::PortRange{};
+    range->min_port = std::atoi(argv[1]);
+    range->max_port = std::atoi(argv[2]);
+  }
+  
+  run(std::move(range));
   
   PeerconnectionMgr::clean();
 
