@@ -27,7 +27,7 @@ WORKDIR build
 ENV CC=/usr/bin/clang
 ENV CXX=/usr/bin/clang++
 
-RUN cmake .. -DFAKE_RENDERER=ON -Dlibwebrtc_DIR=/opt/libwebrtc/cmake && make  -j4
+RUN cmake .. -DFAKE_RENDERER=ON -Dlibwebrtc_DIR=/opt/libwebrtc/cmake && make -j4
 
 ADD run.sh .
 

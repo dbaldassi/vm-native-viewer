@@ -15,15 +15,6 @@
 #include <gtk/gtk.h>
 #endif
 
-namespace config
-{
-  constexpr int MEDOOZE_PORT = 8084;
-  constexpr const char * MEDOOZE_HOST = "134.59.133.76";
-
-  constexpr int MONITOR_PORT = 9000;
-  constexpr const char * MONITOR_HOST = "134.59.133.57";
-}
-
 int run(std::optional<PeerconnectionMgr::PortRange> range)
 {
   MedoozeMgr        medooze;
@@ -33,11 +24,14 @@ int run(std::optional<PeerconnectionMgr::PortRange> range)
   std::condition_variable cv;
   std::mutex              mutex_cv;
   
-  medooze.host = config::MEDOOZE_HOST;
-  medooze.port = config::MEDOOZE_PORT;
+  medooze.host = std::getenv("MEDOOZE_HOST");
+  medooze.port = std::atoi(std::getenv("MEDOOZE_PORT"));
 
-  monitor.host = config::MONITOR_HOST;
-  monitor.port = config::MONITOR_PORT;
+  monitor.host = std::getenv("MONITOR_HOST");
+  monitor.port = std::atoi(std::getenv("MONITOR_PORT"));
+
+  std::cout << "Medooze on : " << medooze.host << ":" << medooze.port << "\n";
+  std::cout << "Monitor on : " << monitor.host << ":" << monitor.port << "\n";
   
   WindowRenderer window;
   auto res = window.create();
