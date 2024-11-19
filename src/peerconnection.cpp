@@ -18,6 +18,7 @@
 
 #include <pc/session_description.h>
 
+#include "fake_adm.h"
 #include "tunnel_loggin.h"
 
 rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> PeerconnectionMgr::_pcf = nullptr;
@@ -33,8 +34,10 @@ rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> PeerconnectionMgr::ge
   _signaling_th = rtc::Thread::Create();
   _signaling_th->SetName("WebRTCSignalingThread", nullptr);
   _signaling_th->Start();
+
+  rtc::scoped_refptr<FakeAudioDeviceModule> adm(new rtc::RefCountedObject<FakeAudioDeviceModule>());
   
-  _pcf = webrtc::CreatePeerConnectionFactory(nullptr, nullptr, _signaling_th.get(), nullptr,
+  _pcf = webrtc::CreatePeerConnectionFactory(nullptr, nullptr, _signaling_th.get(), adm,
 					     webrtc::CreateBuiltinAudioEncoderFactory(),
 					     webrtc::CreateBuiltinAudioDecoderFactory(),
 					     webrtc::CreateBuiltinVideoEncoderFactory(),
