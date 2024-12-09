@@ -17,7 +17,7 @@ MonitorMgr::MonitorMgr() : _alive{false}
 void MonitorMgr::connect()
 {
   TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << "Connect to VM monitor";
-  _ws.connect(host, port);
+  _ws.connect(host, port, "viewer");
 }
 
 void MonitorMgr::start()
@@ -30,7 +30,7 @@ void MonitorMgr::start()
   }
   
   json data = {
-    { "cmd", "new_viewer" },
+    { "cmd", "id" },
     { "name", name }
   };
 
