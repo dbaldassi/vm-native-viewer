@@ -12,7 +12,7 @@ RUN ln -s ../../lib/llvm-15/include/c++/v1 v1
 
 WORKDIR /root
 
-RUN git clone https://github.com/dbaldassi/vm-native-viewer.git
+RUN git clone  https://github.com/dbaldassi/vm-native-viewer.git
 
 ADD lib/libwebrtc /opt/libwebrtc
 

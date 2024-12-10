@@ -47,12 +47,12 @@ void MonitorMgr::send_report(Report report)
   json data{};
   
   if(report.target.has_value()) {
-    data.emplace("cmd", "viewertarget");
+    data.emplace("cmd", "target");
     data.emplace("target", *report.target);
     data.emplace("name", name);
   }
   else if(report.bitrate.has_value() || report.fps.has_value()) {
-    data.emplace("cmd", "viewerbitrate");
+    data.emplace("cmd", "bitrate");
     data.emplace("bitrate", report.bitrate.value_or(0));
     data.emplace("fps", report.fps.value_or(0));
     data.emplace("name", name);
