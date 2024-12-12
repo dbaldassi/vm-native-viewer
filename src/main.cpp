@@ -15,7 +15,7 @@
 #include <gtk/gtk.h>
 #endif
 
-int run(std::optional<PeerconnectionMgr::PortRange> range)
+int run(std::optional<std::string> name, std::optional<PeerconnectionMgr::PortRange> range)
 {
   MedoozeMgr        medooze;
   PeerconnectionMgr pc;
@@ -60,8 +60,8 @@ int run(std::optional<PeerconnectionMgr::PortRange> range)
     monitor.send_report(std::move(report));
   };
 
-  medooze.onname = [&monitor](const std::string& name) {
-    monitor.name = name;
+  medooze.onname = [&monitor, &name](const std::string& mname) {
+    monitor.name = name.value_or(mname);
     monitor.start();
   };
   medooze.onanswer = [&pc](auto&& sdp) -> void { pc.set_remote_description(sdp); };
@@ -107,13 +107,20 @@ int main(int argc, char *argv[])
   TunnelLogging::set_min_severity(TunnelLogging::Severity::VERBOSE);
 
   std::optional<PeerconnectionMgr::PortRange> range;
-  if(argc == 3) {
+  std::optional<std::string> name;
+  
+  if(argc >= 3) {
     range = PeerconnectionMgr::PortRange{};
     range->min_port = std::atoi(argv[1]);
     range->max_port = std::atoi(argv[2]);
+
+    if(argc == 4) name = argv[3];
+  }
+  else if(argc == 2) {
+    name = argv[1];
   }
   
-  run(std::move(range));
+  run(std::move(name), std::move(range));
   
   PeerconnectionMgr::clean();
 
