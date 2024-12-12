@@ -1,5 +1,8 @@
 #include "monitor_manager.h"
 
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
 MonitorMgr::MonitorMgr() : _alive{false}
 {
   _ws.onopen = [this]() {
@@ -52,9 +55,12 @@ void MonitorMgr::send_report(Report report)
     data.emplace("name", name);
   }
   else if(report.bitrate.has_value() || report.fps.has_value()) {
+    std::string res = fmt::format("{}x{}", *report.width, *report.height);
+    
     data.emplace("cmd", "bitrate");
-    data.emplace("bitrate", report.bitrate.value_or(0));
-    data.emplace("fps", report.fps.value_or(0));
+    data.emplace("bitrate", *report.bitrate);
+    data.emplace("fps", *report.fps);
+    data.emplace("res", res);
     data.emplace("name", name);
   }
 

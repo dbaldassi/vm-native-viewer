@@ -206,7 +206,9 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
       rtc_stats.frame_dropped = s->frames_dropped.ValueOrDefault(0.);
       rtc_stats.frame_decoded = s->frames_decoded.ValueOrDefault(0.);
       rtc_stats.frame_key_decoded = s->key_frames_decoded.ValueOrDefault(0.);
-
+      rtc_stats.frame_width = s->frame_width.ValueOrDefault(0);
+      rtc_stats.frame_height = s->frame_height.ValueOrDefault(0);
+      
       TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << s->frame_width.ValueOrDefault(0.) << "x" << s->frame_height.ValueOrDefault(0.);
       
       /*std::cout << "jitter : " << s->jitter_buffer_delay.ValueOrDefault(0.) << "\n"

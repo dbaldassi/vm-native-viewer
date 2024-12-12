@@ -23,6 +23,8 @@ public:
   {
     std::optional<int> target;
     std::optional<int> bitrate;
+    std::optional<int> width;
+    std::optional<int> height;
     std::optional<int> fps;
   };
   

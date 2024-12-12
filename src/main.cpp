@@ -56,6 +56,8 @@ int run(std::optional<std::string> name, std::optional<PeerconnectionMgr::PortRa
     MonitorMgr::Report report;
     report.bitrate = stats.bitrate;
     report.fps = stats.fps;
+    report.width = stats.frame_width;
+    report.height = stats.frame_height;
 
     monitor.send_report(std::move(report));
   };

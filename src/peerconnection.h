@@ -49,6 +49,8 @@ public:
     int frame_decoded = 0;
     int frame_key_decoded = 0;
     int frame_rendered = 0;
+    int frame_width = 0;
+    int frame_height = 0;
   };
 
   std::function<void(RTCStats)> onstats; 
