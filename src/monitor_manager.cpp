@@ -52,6 +52,7 @@ void MonitorMgr::send_report(Report report)
   if(report.target.has_value()) {
     data.emplace("cmd", "target");
     data.emplace("target", *report.target);
+    data.emplace("rid", *report.rid);
     data.emplace("name", name);
   }
   else if(report.bitrate.has_value() || report.fps.has_value()) {

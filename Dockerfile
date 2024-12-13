@@ -1,6 +1,6 @@
 FROM debian:bookworm
 
-RUN apt-get update && apt-get install -y build-essential cmake git clang clang-15 libc++-15-dev libc++abi-15-dev libx11-dev pulseaudio kmod iproute2
+RUN apt-get update && apt-get install -y build-essential cmake git clang clang-15 libc++-15-dev libc++abi-15-dev libx11-dev pulseaudio kmod iproute2 libfmt-dev
 
 WORKDIR /usr/bin
 

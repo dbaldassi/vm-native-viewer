@@ -67,9 +67,10 @@ int run(std::optional<std::string> name, std::optional<PeerconnectionMgr::PortRa
     monitor.start();
   };
   medooze.onanswer = [&pc](auto&& sdp) -> void { pc.set_remote_description(sdp); };
-  medooze.ontarget = [&monitor](int target) {
+  medooze.ontarget = [&monitor](int target, std::string&& rid) {
     MonitorMgr::Report report;
     report.target = target;
+    report.rid = std::move(rid);
     monitor.send_report(std::move(report));
   };
   

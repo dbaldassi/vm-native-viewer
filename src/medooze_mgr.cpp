@@ -28,7 +28,9 @@ void MedoozeMgr::start()
       if(onname) onname(msg["name"].template get<std::string>());
     }
     else if(auto answer = msg.find("target"); answer != msg.end()) {
-      if(ontarget) ontarget(answer->template get<int>());
+      if(ontarget) {	
+	ontarget(answer->template get<int>(), msg["rid"].template get<std::string>());
+      }
     }
   };
 }

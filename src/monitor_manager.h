@@ -21,6 +21,7 @@ public:
 
   struct Report
   {
+    std::optional<std::string> rid;
     std::optional<int> target;
     std::optional<int> bitrate;
     std::optional<int> width;
