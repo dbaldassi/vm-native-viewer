@@ -18,7 +18,8 @@ class PeerconnectionMgr : public webrtc::PeerConnectionObserver,
 			  public webrtc::CreateSessionDescriptionObserver,
 			  public webrtc::SetLocalDescriptionObserverInterface,
 			  public webrtc::SetRemoteDescriptionObserverInterface,
-			  public webrtc::RTCStatsCollectorCallback
+			  public webrtc::RTCStatsCollectorCallback,
+			  public webrtc::FrameTransformerInterface
 {
   static rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _pcf;
   static std::unique_ptr<rtc::Thread> _signaling_th;
@@ -35,8 +36,16 @@ class PeerconnectionMgr : public webrtc::PeerConnectionObserver,
 
   int _key_frame;
   int _frames;
-public:
 
+  using MetadataHeader = uint32_t;
+
+  std::unordered_map <uint64_t, rtc::scoped_refptr<webrtc::TransformedFrameCallback>> _callbacks;
+
+  std::mutex _delay_mutex;
+  unsigned long _delay_sum = 0;
+  unsigned long _delay_count = 0;
+  
+public:
   rtc::VideoSinkInterface<webrtc::VideoFrame> * video_sink = nullptr;
 
   struct RTCStats
@@ -51,6 +60,7 @@ public:
     int frame_rendered = 0;
     int frame_width = 0;
     int frame_height = 0;
+    int delay = 0;
   };
 
   std::function<void(RTCStats)> onstats; 
@@ -98,6 +108,12 @@ public:
 
   void OnSetLocalDescriptionComplete(webrtc::RTCError error) override;
   void OnSetRemoteDescriptionComplete(webrtc::RTCError error) override;
+
+  void Transform(std::unique_ptr<webrtc::TransformableFrameInterface> TransformableFrame) override;
+  void RegisterTransformedFrameCallback(rtc::scoped_refptr<webrtc::TransformedFrameCallback> InCallback) override {}
+  void RegisterTransformedFrameSinkCallback(rtc::scoped_refptr<webrtc::TransformedFrameCallback> InCallback, uint32_t Ssrc) override;
+  void UnregisterTransformedFrameCallback() override {}
+  void UnregisterTransformedFrameSinkCallback(uint32_t ssrc) override;
 
 public:
   void AddRef() const override { ref_count_.IncRef(); }

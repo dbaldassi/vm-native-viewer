@@ -24,6 +24,62 @@
 rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> PeerconnectionMgr::_pcf = nullptr;
 std::unique_ptr<rtc::Thread> PeerconnectionMgr::_signaling_th = nullptr;
 
+constexpr int puissance(int v, unsigned int e)
+{
+  if(e == 0) return 1;
+  return puissance(v, e - 1) * v;
+}
+
+void PeerconnectionMgr::Transform(std::unique_ptr<webrtc::TransformableFrameInterface> trans_frame)
+{
+  auto ssrc = trans_frame->GetSsrc();
+
+  if (auto it = _callbacks.find(ssrc); it != _callbacks.end()) {
+    auto data_view = trans_frame->GetData();
+    auto length = data_view.size();
+
+    constexpr auto DATA_LENGTH = 4;
+    constexpr const unsigned char magic_value[] = { 0xca, 0xfe, 0xba, 0xbe };
+    bool has_magic_value = true;
+    for(int i = 0; has_magic_value && i < 4; ++i) {
+      has_magic_value = data_view[i + (length - DATA_LENGTH*2)] == magic_value[i]; 
+    }
+    
+    // Check that the extracted value match the start value
+    if (has_magic_value) {
+      unsigned int time = 0;
+      constexpr int OCTET = puissance(2,8);
+      for(int i = 0; i < DATA_LENGTH; ++i) {
+	time += data_view[i + (length - DATA_LENGTH)] * puissance(OCTET, i);
+      }
+
+      auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+      unsigned int delay = now.count() - time;
+
+      {
+	std::unique_lock<std::mutex> lock(_delay_mutex);
+	_delay_sum += static_cast<unsigned long>(delay);
+	_delay_count++;
+      }
+      
+      // Set the final transformed data.
+      trans_frame->SetData(data_view.subview(0, length - 2 * DATA_LENGTH));
+    }
+     
+    it->second->OnTransformedFrame(std::move(trans_frame));
+  }
+}
+
+void PeerconnectionMgr::RegisterTransformedFrameSinkCallback(rtc::scoped_refptr<webrtc::TransformedFrameCallback> InCallback, uint32_t Ssrc)
+{
+  _callbacks[Ssrc] = InCallback;
+}
+
+void PeerconnectionMgr::UnregisterTransformedFrameSinkCallback(uint32_t ssrc)
+{
+  _callbacks.erase(ssrc);
+}
+
 rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> PeerconnectionMgr::get_pcf()
 {
   if(_pcf != nullptr) return _pcf;
@@ -224,6 +280,12 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
       _prev_bytes = *s->bytes_received;
     }
   }
+
+  {
+    std::unique_lock<std::mutex> lock(_delay_mutex);
+    rtc_stats.delay = _delay_sum / _delay_count;
+    _delay_count = 0; _delay_sum = 0;
+  }
   
   // stats.push_back(std::move(rtc_stats));
 
@@ -271,6 +333,8 @@ void PeerconnectionMgr::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterfa
     auto track = static_cast<webrtc::VideoTrackInterface*>(transceiver->receiver()->track().get());
     track->AddOrUpdateSink(video_sink, rtc::VideoSinkWants{});
   }
+
+  transceiver->receiver()->SetDepacketizerToDecoderFrameTransformer(_me);
 }
 
 void PeerconnectionMgr::OnRemoveTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) 
