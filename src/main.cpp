@@ -58,6 +58,7 @@ int run(std::optional<std::string> name, std::optional<PeerconnectionMgr::PortRa
     report.fps = stats.fps;
     report.width = stats.frame_width;
     report.height = stats.frame_height;
+    report.delay = stats.delay;
 
     monitor.send_report(std::move(report));
   };
