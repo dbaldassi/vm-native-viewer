@@ -61,6 +61,7 @@ public:
     int frame_width = 0;
     int frame_height = 0;
     int delay = 0;
+    int rtt = 0;
   };
 
   std::function<void(RTCStats)> onstats; 

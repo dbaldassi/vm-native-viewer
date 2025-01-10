@@ -28,6 +28,7 @@ public:
     std::optional<int> height;
     std::optional<int> fps;
     std::optional<int> delay;
+    std::optional<int> rtt;
   };
   
   std::string host;

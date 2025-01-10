@@ -266,28 +266,24 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
       rtc_stats.frame_height = s->frame_height.ValueOrDefault(0);
       
       TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << s->frame_width.ValueOrDefault(0.) << "x" << s->frame_height.ValueOrDefault(0.);
-      
-      /*std::cout << "jitter : " << s->jitter_buffer_delay.ValueOrDefault(0.) << "\n"
-		<< "jitter target : " << s->jitter_buffer_target_delay.ValueOrDefault(0.) << "\n"
-		<< "jitter min : " << s->jitter_buffer_minimum_delay.ValueOrDefault(0.) << "\n"
-		<< "jitter flush : " << s->jitter_buffer_flushes.ValueOrDefault(0.) << "\n"
-		<< "packet fec : " << s->fec_packets_received.ValueOrDefault(0.) << "\n"
-	// << "packet rtx : " << s->retransmitted_bytes_received.ValueOrDefault(0.) << "\n"
-		<< "frame dropped : " << s->frames_dropped.ValueOrDefault(0.) << "\n"
-		<< "\n";*/
-      
+            
       _prev_ts = ts_ms;
       _prev_bytes = *s->bytes_received;
     }
   }
-
-  {
+  
+  auto remote_outbound_stats = report->GetStatsOfType<webrtc::RTCRemoteOutboundRtpStreamStats>();
+  for(const auto& s : remote_outbound_stats) {
+    if(*s->kind == webrtc::RTCMediaStreamTrackKind::kVideo) {
+      rtc_stats.rtt = static_cast<int>(s->round_trip_time.ValueOrDefault(0.)) * 1000;
+    }
+  }
+  
+  if(_delay_count > 0) {
     std::unique_lock<std::mutex> lock(_delay_mutex);
     rtc_stats.delay = _delay_sum / _delay_count;
     _delay_count = 0; _delay_sum = 0;
   }
-  
-  // stats.push_back(std::move(rtc_stats));
 
   if(onstats) onstats(std::move(rtc_stats));
 }
@@ -324,7 +320,7 @@ void PeerconnectionMgr::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterfa
     
     while(_stats_th_running) {
       _pc->GetStats(transceiver->receiver(), _me);
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
       ++_count;
     }
   });

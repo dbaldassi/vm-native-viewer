@@ -62,6 +62,7 @@ void MonitorMgr::send_report(Report report)
     data.emplace("bitrate", *report.bitrate);
     data.emplace("fps", *report.fps);
     data.emplace("delay", *report.delay);
+    data.emplace("rtt", *report.rtt);
     data.emplace("res", res);
     data.emplace("name", name);
   }
