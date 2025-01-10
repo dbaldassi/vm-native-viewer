@@ -275,7 +275,7 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
   auto remote_outbound_stats = report->GetStatsOfType<webrtc::RTCRemoteOutboundRtpStreamStats>();
   for(const auto& s : remote_outbound_stats) {
     if(*s->kind == webrtc::RTCMediaStreamTrackKind::kVideo) {
-      rtc_stats.rtt = static_cast<int>(s->round_trip_time.ValueOrDefault(0.)) * 1000;
+      rtc_stats.rtt = static_cast<int>(s->round_trip_time.ValueOrDefault(0.) * 1000);
     }
   }
   
