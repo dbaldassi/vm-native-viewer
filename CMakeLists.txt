@@ -2,7 +2,7 @@ cmake_minimum_required( VERSION 3.16 FATAL_ERROR )
 
 project( quic-tunnel-native-client )
 
-find_package( libwebrtc ${WEBRTC_API_VERSION}  )
+find_package( libwebrtc 133  )
 message( STATUS "Found libwebrtc at ${libwebrtc_DIR}." )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")

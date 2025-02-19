@@ -119,9 +119,9 @@ public:
 public:
   void AddRef() const override { ref_count_.IncRef(); }
 
-  rtc::RefCountReleaseStatus Release() const override {
+  webrtc::RefCountReleaseStatus Release() const override {
     const auto status = ref_count_.DecRef();
-    if (status == rtc::RefCountReleaseStatus::kDroppedLastRef) {
+    if (status == webrtc::RefCountReleaseStatus::kDroppedLastRef) {
       // don't want to delete it
       // delete this;
     }

@@ -7,6 +7,7 @@
 
 #include <api/create_peerconnection_factory.h>
 #include <rtc_base/ssl_adapter.h>
+#include <rtc_base/crypto_random.h>
 
 #include <api/video_codecs/builtin_video_decoder_factory.h>
 #include <api/video_codecs/builtin_video_encoder_factory.h>
@@ -133,7 +134,6 @@ void PeerconnectionMgr::start()
   webrtc::PeerConnectionInterface::RTCConfiguration config(webrtc::PeerConnectionInterface::RTCConfigurationType::kAggressive);
 
   config.set_cpu_adaptation(true);
-  config.combined_audio_video_bwe.emplace(true);
   config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
 
   if(port_range.has_value()) {
@@ -246,10 +246,10 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
 {  
   RTCStats rtc_stats;
 
-  auto inbound_stats = report->GetStatsOfType<webrtc::RTCInboundRTPStreamStats>();
+  auto inbound_stats = report->GetStatsOfType<webrtc::RTCInboundRtpStreamStats>();
   
   for(const auto& s : inbound_stats) {
-    if(*s->kind == webrtc::RTCMediaStreamTrackKind::kVideo) {
+    if(*s->kind == cricket::kMediaTypeVideo) {
       auto ts = s->timestamp();
       auto ts_ms = ts.ms();
       auto delta = ts_ms - _prev_ts;
@@ -258,14 +258,14 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
       rtc_stats.x = _count;
       rtc_stats.link = link;
       rtc_stats.bitrate = static_cast<int>(8. * bytes / delta);
-      rtc_stats.fps = s->frames_per_second.ValueOrDefault(0.);
-      rtc_stats.frame_dropped = s->frames_dropped.ValueOrDefault(0.);
-      rtc_stats.frame_decoded = s->frames_decoded.ValueOrDefault(0.);
-      rtc_stats.frame_key_decoded = s->key_frames_decoded.ValueOrDefault(0.);
-      rtc_stats.frame_width = s->frame_width.ValueOrDefault(0);
-      rtc_stats.frame_height = s->frame_height.ValueOrDefault(0);
+      rtc_stats.fps = s->frames_per_second.value_or(0.);
+      rtc_stats.frame_dropped = s->frames_dropped.value_or(0.);
+      rtc_stats.frame_decoded = s->frames_decoded.value_or(0.);
+      rtc_stats.frame_key_decoded = s->key_frames_decoded.value_or(0.);
+      rtc_stats.frame_width = s->frame_width.value_or(0);
+      rtc_stats.frame_height = s->frame_height.value_or(0);
       
-      TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << s->frame_width.ValueOrDefault(0.) << "x" << s->frame_height.ValueOrDefault(0.);
+      TUNNEL_LOG(TunnelLogging::Severity::VERBOSE) << s->frame_width.value_or(0.) << "x" << s->frame_height.value_or(0.);
             
       _prev_ts = ts_ms;
       _prev_bytes = *s->bytes_received;
@@ -274,8 +274,8 @@ void PeerconnectionMgr::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::
   
   auto remote_outbound_stats = report->GetStatsOfType<webrtc::RTCRemoteOutboundRtpStreamStats>();
   for(const auto& s : remote_outbound_stats) {
-    if(*s->kind == webrtc::RTCMediaStreamTrackKind::kVideo) {
-      rtc_stats.rtt = static_cast<int>(s->round_trip_time.ValueOrDefault(0.) * 1000);
+    if(*s->kind == cricket::kMediaTypeVideo) {
+      rtc_stats.rtt = static_cast<int>(s->round_trip_time.value_or(0.) * 1000);
     }
   }
   
